@@ -1,0 +1,14 @@
+name: SpoutBackpack
+version: 2.2.0
+description: Give your players a Backpack w/ Spout.
+author: NeatMonster
+website: http://craftisland.no-ip.org/
+main: me.neatmonster.spoutbackpack.SpoutBackpack
+database: false
+depend: [Spout]
+softdepend: [Permissions, PermissionsBukkit, GroupManager, iConomy, BOSEconomy, Essentials Economy, MultiCurrency, WorldGuard, MobArena, Jail]
+commands:
+    backpack:
+        description: Main command of SpoutBackpack.
+    bp:
+        description: Alias of /backpack.
