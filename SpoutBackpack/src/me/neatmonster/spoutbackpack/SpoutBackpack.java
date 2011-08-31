@@ -287,7 +287,7 @@ public class SpoutBackpack extends JavaPlugin {
 		}
 		Configuration config = new Configuration(saveFile);
 		config.load();
-		int size = allowedSize(world, player);
+		int size = allowedSize(world, player, true);
 		if (size == 0) {
 			size = 9;
 		}
@@ -316,7 +316,7 @@ public class SpoutBackpack extends JavaPlugin {
 		this.inventories.put(player.getName(), is);
 	}
 
-	public int allowedSize(World world, Player player) {
+	public int allowedSize(World world, Player player, boolean configurationCheck) {
 		int size = 9;
 		if (permissionHandler != null) {
 			if (permissionHandler.has(world.getName(), player.getName(),
@@ -399,6 +399,15 @@ public class SpoutBackpack extends JavaPlugin {
 				size = 9;
 			}
 		}
+		if (configurationCheck) {
+			if (allowedSizeInConfig(world, player) > size) {
+				size = allowedSizeInConfig(world, player);
+			}
+		}
+		return size;
+	}
+	
+	public int allowedSizeInConfig(World world, Player player) {
 		File saveFile;
 		if (config.getBoolean("Backpack." + world.getName()
 				+ ".InventoriesShare?", true)) {
@@ -411,10 +420,7 @@ public class SpoutBackpack extends JavaPlugin {
 		}
 		Configuration config = new Configuration(saveFile);
 		config.load();
-		if (config.getInt("Size", size) != size) {
-			size = config.getInt("Size", size);
-		}
-		return size;
+		return config.getInt("Size", 0);
 	}
 
 	public boolean canOpenBackpack(World world, Player player) {
@@ -538,7 +544,7 @@ public class SpoutBackpack extends JavaPlugin {
 								|| argument.equalsIgnoreCase("?")) {
 							showHelp(player);
 						} else if (argument.equalsIgnoreCase("info")) {
-							int size = allowedSize(player.getWorld(), player);
+							int size = allowedSize(player.getWorld(), player, true);
 							if (size == 54) {
 								player.sendMessage("You've got the biggest "
 										+ ChatColor.RED + inventoryName
@@ -562,7 +568,7 @@ public class SpoutBackpack extends JavaPlugin {
 								}
 							}
 						} else if (argument.equalsIgnoreCase("upgrade")) {
-							if (allowedSize(player.getWorld(), player) < upgradeAllowedSize(
+							if (allowedSize(player.getWorld(), player, true) < upgradeAllowedSize(
 									player.getWorld(), player)) {
 								if (Method != null
 										&& (permissionHandler != null || permissionsBukkitPlugin != null)
@@ -570,9 +576,9 @@ public class SpoutBackpack extends JavaPlugin {
 										|| groupManager != null) {
 									startUpgradeProcedure(
 											allowedSize(player.getWorld(),
-													player), player, player);
+													player, true), player, player);
 								}
-							} else if (allowedSize(player.getWorld(), player) == 54) {
+							} else if (allowedSize(player.getWorld(), player, true) == 54) {
 								player.sendMessage("You've got the biggest "
 										+ ChatColor.RED + inventoryName
 										+ ChatColor.WHITE + "!");
@@ -596,6 +602,15 @@ public class SpoutBackpack extends JavaPlugin {
 											+ ChatColor.WHITE + "!");
 								}
 							}
+						} else if (argument.equalsIgnoreCase("debug")) {
+							if (permissionHandler != null) { logger.info("You're are using Permissions."); }
+							else if (permissionsBukkitPlugin != null) { logger.info("You're are using PermissionsBukkit."); }
+							else if (permissionsEx != null) { logger.info("You're are using PermissionsEx."); }
+							else if (groupManager != null) { logger.info("You're are using GroupManager."); }
+							if (Method != null) { logger.info("Economy system detected."); }
+							logger.info("Your permissions give you a " + allowedSize(player.getWorld(), player, false) + " slots Backpack.");
+							logger.info("Your personal file gives you a " + allowedSizeInConfig(player.getWorld(), player) + " slots Backpack.");
+							logger.info("Your permissions allow you to upgrade to a " + upgradeAllowedSize(player.getWorld(), player) + " slots Backpack.");
 						} else {
 							showHelp(player);
 						}
@@ -608,7 +623,7 @@ public class SpoutBackpack extends JavaPlugin {
 									Player playerCmd = getServer().getPlayer(
 											playerName);
 									int size = allowedSize(
-											playerCmd.getWorld(), playerCmd);
+											playerCmd.getWorld(), playerCmd, true);
 									if (size == 54) {
 										player.sendMessage("Player has got the biggest "
 												+ ChatColor.RED
@@ -644,7 +659,7 @@ public class SpoutBackpack extends JavaPlugin {
 									Player playerCmd = getServer().getPlayer(
 											playerName);
 									if (allowedSize(playerCmd.getWorld(),
-											playerCmd) < upgradeAllowedSize(
+											playerCmd, true) < upgradeAllowedSize(
 											playerCmd.getWorld(), playerCmd)) {
 										if (Method != null
 												&& (permissionHandler != null || permissionsBukkitPlugin != null)
@@ -654,11 +669,11 @@ public class SpoutBackpack extends JavaPlugin {
 													allowedSize(
 															playerCmd
 																	.getWorld(),
-															playerCmd),
+															playerCmd, true),
 													playerCmd, player);
 										}
 									} else if (allowedSize(
-											playerCmd.getWorld(), playerCmd) == 54) {
+											playerCmd.getWorld(), playerCmd, true) == 54) {
 										player.sendMessage("Player has got the biggest "
 												+ ChatColor.RED
 												+ inventoryName
@@ -804,7 +819,7 @@ public class SpoutBackpack extends JavaPlugin {
 		}
 		player.sendMessage("/backpack info : Show info about your "
 				+ ChatColor.RED + inventoryName + ChatColor.WHITE + ".");
-		if (allowedSize(player.getWorld(), player) < upgradeAllowedSize(
+		if (allowedSize(player.getWorld(), player, true) < upgradeAllowedSize(
 				player.getWorld(), player)
 				&& Method != null
 				&& (permissionHandler != null || permissionsBukkitPlugin != null)

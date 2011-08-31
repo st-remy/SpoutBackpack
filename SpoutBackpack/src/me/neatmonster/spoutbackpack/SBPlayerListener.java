@@ -37,7 +37,7 @@ public class SBPlayerListener extends PlayerListener {
 				plugin.inventories.remove(player.getName());
 				plugin.inventoriesSize.remove(player.getName());
 				plugin.inventoriesSize.put(player.getName(),
-						plugin.allowedSize(event.getTo().getWorld(), player));
+						plugin.allowedSize(event.getTo().getWorld(), player, true));
 				plugin.loadInventory(player, event.getTo().getWorld());
 			} catch (Exception e) {
 				e.printStackTrace();
