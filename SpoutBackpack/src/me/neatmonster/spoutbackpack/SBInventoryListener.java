@@ -1,8 +1,5 @@
 package me.neatmonster.spoutbackpack;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -10,7 +7,6 @@ import org.bukkit.inventory.ItemStack;
 import org.getspout.spoutapi.event.inventory.InventoryClickEvent;
 import org.getspout.spoutapi.event.inventory.InventoryCloseEvent;
 import org.getspout.spoutapi.event.inventory.InventoryListener;
-import org.getspout.spoutapi.event.inventory.InventoryOpenEvent;
 import org.getspout.spoutapi.event.inventory.InventorySlotType;
 
 public class SBInventoryListener extends InventoryListener {
@@ -19,12 +15,6 @@ public class SBInventoryListener extends InventoryListener {
 
 	public SBInventoryListener(SpoutBackpack plugin) {
 		this.plugin = plugin;
-	}
-
-	public void onInventoryOpen(InventoryOpenEvent event) {
-		if (plugin.inventoryDisabled) {
-			event.setCancelled(true);
-		}
 	}
 
 	public void onInventoryClose(InventoryCloseEvent event) {
@@ -77,35 +67,27 @@ public class SBInventoryListener extends InventoryListener {
 		String invName = inv.getName();
 		ItemStack clickedItem = event.getItem();
 		int slot = event.getSlot();
-		if ((plugin.openedInventories.containsKey(player.getName()) || plugin.openedInventoriesOthers
-				.containsKey(player.getName()))
-				&& clickedSlotType != InventorySlotType.CONTAINER
-				&& invName.equals("Inventory")
-				&& (plugin.blackOrWhiteList == 1
-						&& plugin.blacklist.contains(clickedItem.getTypeId()) || plugin.blackOrWhiteList == 2
-						&& !plugin.whitelist.contains(clickedItem.getTypeId()))) {
-			event.setCancelled(true);
-			player.sendMessage(ChatColor.RED
-					+ "You aren't allowed to move this into your "
-					+ plugin.inventoryName + "!");
-			return;
+		try {
+			if ((plugin.openedInventories.containsKey(player.getName()) || plugin.openedInventoriesOthers
+					.containsKey(player.getName()))
+					&& clickedSlotType != InventorySlotType.CONTAINER
+					&& invName.equals("Inventory")
+					&& (plugin.blackOrWhiteList == 1
+							&& plugin.blacklist.contains(clickedItem.getTypeId()) || plugin.blackOrWhiteList == 2
+							&& !plugin.whitelist.contains(clickedItem.getTypeId()))) {
+				event.setCancelled(true);
+				player.sendMessage(ChatColor.RED
+						+ "You aren't allowed to move this into your "
+						+ plugin.inventoryName + "!");
+				return;
+			}
+			if (clickedSlotType == InventorySlotType.CONTAINER
+					&& invName.equals(plugin.inventoryName) && clickedItem != null) {
+				ItemStack is = inv.getItem(slot);
+				is.setAmount(is.getAmount() - clickedItem.getAmount());
+				plugin.updateInventory(player, inv.getContents());
+			}
+		} catch (NullPointerException e) {	
 		}
-		if (clickedSlotType == InventorySlotType.CONTAINER
-				&& invName.equals(plugin.inventoryName) && clickedItem != null) {
-			ItemStack is = inv.getItem(slot);
-			is.setAmount(is.getAmount() - clickedItem.getAmount());
-			plugin.updateInventory(player, inv.getContents());
-		}
-	}
-
-	public static ItemStack[] removeElements(ItemStack[] input,
-			ItemStack deleteMe) {
-		List<ItemStack> result = new LinkedList<ItemStack>();
-
-		for (ItemStack item : input)
-			if (!deleteMe.equals(item))
-				result.add(item);
-
-		return result.toArray(input);
 	}
 }

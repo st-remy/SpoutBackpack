@@ -41,7 +41,6 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 public class SpoutBackpack extends JavaPlugin {
 
 	public Configuration config;
-	public boolean inventoryDisabled;
 	public boolean workbenchEnabled;
 	public boolean workbenchInventory;
 	public int blackOrWhiteList;
@@ -104,8 +103,6 @@ public class SpoutBackpack extends JavaPlugin {
 				Priority.Normal, this);
 		pm.registerEvent(Type.CUSTOM_EVENT, new SBInventoryListener(this),
 				Priority.Normal, this);
-		pm.registerEvent(Type.INVENTORY_OPEN, new SBInventoryListener(this),
-				Priority.Normal, this);
 		pm.registerEvent(Type.PLAYER_JOIN, new SBPlayerListener(this),
 				Priority.Normal, this);
 		pm.registerEvent(Type.PLAYER_TELEPORT, new SBPlayerListener(this),
@@ -159,8 +156,6 @@ public class SpoutBackpack extends JavaPlugin {
 		price36 = config.getDouble("Backpack.Price.36", 30.00);
 		price45 = config.getDouble("Backpack.Price.45", 40.00);
 		price54 = config.getDouble("Backpack.Price.54", 50.00);
-		inventoryDisabled = config.getBoolean("Backpack.DisableInventory?",
-				false);
 		blackOrWhiteList = config.getInt("Backpack.NoneBlackOrWhiteList?", 0);
 		if (blackOrWhiteList != 1 && blackOrWhiteList != 2) {
 			blackOrWhiteList = 0;
