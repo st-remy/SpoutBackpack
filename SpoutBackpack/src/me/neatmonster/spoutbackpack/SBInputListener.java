@@ -9,6 +9,7 @@ import net.minecraft.server.Packet101CloseWindow;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.craftbukkit.inventory.CraftInventory;
 import org.bukkit.inventory.Inventory;
 import org.getspout.spout.inventory.CustomInventory;
 import org.getspout.spoutapi.event.input.InputListener;
@@ -32,9 +33,6 @@ public class SBInputListener extends InputListener {
 	public void onKeyPressedEvent(KeyPressedEvent event) {
 		if (event.getKey() == getKeyInConfig("Backpack.Key", "B")) {
 			ScreenType screentype = event.getScreenType();
-			if (screentype == ScreenType.WORKBENCH_INVENTORY) {
-				return;
-			}
 			if (plugin.canOpenBackpack(event.getPlayer().getWorld(),
 					event.getPlayer()) == false) {
 				return;
@@ -71,11 +69,7 @@ public class SBInputListener extends InputListener {
 			}
 			if (!plugin.openedInventoriesOthers.containsValue(event.getPlayer()
 					.getName())) {
-				if (screentype != null
-						&& (screentype == ScreenType.GAME_SCREEN
-								|| screentype == ScreenType.PLAYER_INVENTORY
-								|| screentype == ScreenType.DISPENSER_INVENTORY
-								|| screentype == ScreenType.FURNACE_INVENTORY || screentype == ScreenType.WORKBENCH_INVENTORY)) {
+				if (screentype == ScreenType.GAME_SCREEN) {
 					SpoutPlayer player = event.getPlayer();
 					if (plugin.Method != null && plugin.useWidget == true) {
 						if (plugin.widgets.containsKey(player.getName())) {
@@ -138,11 +132,7 @@ public class SBInputListener extends InputListener {
 						entityPlayer.netServerHandler
 								.sendPacket(new Packet101CloseWindow(
 										windowNumber));
-					} else if (screentype != null
-							&& (screentype == ScreenType.GAME_SCREEN
-									|| screentype == ScreenType.PLAYER_INVENTORY
-									|| screentype == ScreenType.DISPENSER_INVENTORY
-									|| screentype == ScreenType.FURNACE_INVENTORY || screentype == ScreenType.CHEST_INVENTORY)) {
+					} else if (screentype == ScreenType.GAME_SCREEN) {
 						SpoutPlayer player = event.getPlayer();
 						final EntityPlayer entityPlayer = ((CraftPlayer) player)
 								.getHandle();
@@ -153,6 +143,14 @@ public class SBInputListener extends InputListener {
 								entityPlayer, windowNumber);
 					}
 				}
+			}
+		}  else if (event.getKey() == Keyboard.KEY_F) {
+			CraftPlayer player = (CraftPlayer) event.getPlayer();
+			if (event.getScreenType() == ScreenType.GAME_SCREEN) {
+			Inventory furnaceInventory = new CraftInventory(new SBTileEntityFurnace());
+			event.getPlayer().openInventoryWindow(furnaceInventory);
+			} else if (event.getScreenType() == ScreenType.FURNACE_INVENTORY) {
+				player.getHandle().y();
 			}
 		}
 	}
