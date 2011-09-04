@@ -283,7 +283,10 @@ public class SpoutBackpack extends JavaPlugin {
 		Configuration config = new Configuration(saveFile);
 		config.load();
 		int size = allowedSize(world, player, true);
-		if (config.getInt("Size", size) > size) {
+		if (size == 0) {
+			size = 9;
+		}
+		if (config.getInt("Size", size) != size) {
 			size = config.getInt("Size", size);
 		}
 		this.inventoriesSize.put(player.getName(), size);
