@@ -25,7 +25,7 @@ public class SBRegister extends ServerListener {
 			if (check) {
 				plugin.Method = null;
 				logger.info(logTag
-						+ " Payment method was disabled. No longer accepting payments.");
+						+ plugin.li.getMessage("paymentmethodwasdisabled"));
 			}
 		}
 	}
@@ -34,7 +34,7 @@ public class SBRegister extends ServerListener {
 		if (!Methods.hasMethod()) {
 			if (Methods.setMethod(event.getPlugin())) {
 				plugin.Method = this.Methods.getMethod();
-				logger.info(logTag + " Payment method found ("
+				logger.info(logTag + plugin.li.getMessage("paymentmethodfound")
 						+ plugin.Method.getName() + " v"
 						+ plugin.Method.getVersion() + ").");
 			}

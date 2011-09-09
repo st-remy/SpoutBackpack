@@ -35,9 +35,6 @@ public class SBPlayerListener extends PlayerListener {
 				SBInventorySaveTask.saveInventory(player, event.getFrom()
 						.getWorld());
 				plugin.inventories.remove(player.getName());
-				plugin.inventoriesSize.remove(player.getName());
-				plugin.inventoriesSize.put(player.getName(),
-						plugin.allowedSize(event.getTo().getWorld(), player, true));
 				plugin.loadInventory(player, event.getTo().getWorld());
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -65,9 +62,6 @@ public class SBPlayerListener extends PlayerListener {
 			SBInventorySaveTask.saveInventory(player, player.getWorld());
 			if (plugin.inventories.containsKey(player)) {
 				plugin.inventories.remove(player);
-			}
-			if (plugin.inventoriesSize.containsKey(player)) {
-				plugin.inventoriesSize.remove(player);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

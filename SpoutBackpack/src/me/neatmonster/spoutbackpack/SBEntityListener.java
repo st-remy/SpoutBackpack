@@ -36,10 +36,10 @@ public class SBEntityListener extends EntityListener {
 						}
 					}
 					CustomInventory inventory = new CustomInventory(
-							plugin.inventoriesSize.get(player.getName()),
+							plugin.allowedSize(player.getWorld(), player, true),
 							plugin.inventoryName);
-					for (Integer i = 0; i < plugin.inventoriesSize.get(player
-							.getName()); i++) {
+					for (Integer i = 0; i < plugin.allowedSize(
+							player.getWorld(), player, true); i++) {
 						ItemStack item = new ItemStack(0, 0);
 						inventory.setItem(i, item);
 					}
@@ -51,11 +51,9 @@ public class SBEntityListener extends EntityListener {
 				if (!((SpoutPlayer) player).isSpoutCraftEnabled()) {
 
 					player.sendMessage(plugin.logTag
-							+ " Your "
-							+ ChatColor.RED
-							+ plugin.inventoryName
-							+ ChatColor.WHITE
-							+ " has broken! You'll need to use Spout again to fix it.");
+							+ plugin.li.getMessage("your") + ChatColor.RED
+							+ plugin.inventoryName + ChatColor.WHITE
+							+ plugin.li.getMessage("hasbroken"));
 				}
 			}
 		}

@@ -87,7 +87,7 @@ public class SBInputListener extends InputListener {
 								return;
 							}
 							widget.setText(
-									"Money: "
+									plugin.li.getMessage("money")
 											+ String.format(plugin.Method.format(plugin.Method
 													.getAccount(
 															player.getName())
@@ -100,7 +100,7 @@ public class SBInputListener extends InputListener {
 						}
 					}
 					CustomInventory inv = new CustomInventory(
-							plugin.inventoriesSize.get(player.getName()),
+							plugin.allowedSize(player.getWorld(), player, true),
 							plugin.inventoryName);
 					plugin.openedInventories.put(player.getName(), inv);
 					if (plugin.inventories.containsKey(player.getName())) {
@@ -110,8 +110,9 @@ public class SBInputListener extends InputListener {
 				}
 			} else {
 				event.getPlayer().sendMessage(
-						"Someone is using your " + ChatColor.RED
-								+ plugin.inventoryName + ChatColor.WHITE + "!");
+						plugin.li.getMessage("someoneisusingyour")
+								+ ChatColor.RED + plugin.inventoryName
+								+ ChatColor.WHITE + plugin.li.getMessage("!"));
 			}
 		} else if (event.getKey() == getKeyInConfig("Workbench.Key", "W")
 				&& plugin.workbenchEnabled == true) {

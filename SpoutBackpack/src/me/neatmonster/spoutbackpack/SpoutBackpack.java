@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import me.neatmonster.spoutbackpack.SBLanguageInterface.Language;
+
 import org.anjocaido.groupmanager.GroupManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -63,10 +65,10 @@ public class SpoutBackpack extends JavaPlugin {
 	public HashMap<String, ItemStack[]> inventories = new HashMap<String, ItemStack[]>();
 	public HashMap<String, Inventory> openedInventories = new HashMap<String, Inventory>();
 	public HashMap<String, String> openedInventoriesOthers = new HashMap<String, String>();
-	public HashMap<String, Integer> inventoriesSize = new HashMap<String, Integer>();
 	public HashMap<String, GenericLabel> widgets = new HashMap<String, GenericLabel>();
 	public static Logger logger = Logger.getLogger("minecraft");
 	public String logTag = "[SpoutBackpack]";
+	public SBLanguageInterface li;
 	public PermissionHandler permissionHandler;
 	public Plugin permissionsBukkitPlugin;
 	public PermissionManager permissionsEx;
@@ -78,6 +80,7 @@ public class SpoutBackpack extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		loadOrReloadConfiguration();
+		li = new SBLanguageInterface(loadLanguage());
 		if (config.getBoolean("Permissions.UsePermissions?", true) == false) {
 			if (config.getBoolean("Permissions.UsePermissionsBukkit?", false) == false) {
 				if (config.getBoolean("Permissions.UsePermissionsEx?", false) == false) {
@@ -130,12 +133,13 @@ public class SpoutBackpack extends JavaPlugin {
 		for (Player player : this.getServer().getOnlinePlayers()) {
 			this.loadInventory(player, player.getWorld());
 		}
-		logger.info(logTag + " Inventories loaded.");
+		logger.info(logTag + li.getMessage("inventoriesloaded"));
 	}
 
 	private void loadOrReloadConfiguration() {
 		this.config = this.getConfiguration();
 		config.load();
+		config.getString("Language", "English");
 		config.getBoolean("Permissions.UsePermissions?", true);
 		config.getBoolean("Permissions.UsePermissionsBukkit?", false);
 		config.getBoolean("Permissions.UsePermissionsEx?", false);
@@ -182,6 +186,21 @@ public class SpoutBackpack extends JavaPlugin {
 		config.save();
 	}
 
+	private Language loadLanguage() {
+		this.config = this.getConfiguration();
+		config.load();
+		String languageInConfig = config.getString("Language", "English");
+		if (languageInConfig.equalsIgnoreCase("English")) {
+			return Language.ENGLISH;
+		} else if (languageInConfig.equalsIgnoreCase("French")) {
+			return Language.FRENCH;
+		} else {
+			logger.warning(logTag + " Language set to ENGLISH by default.");
+			logger.warning(logTag + " Invalid property in configuration file!");
+			return Language.ENGLISH;
+		}
+	}
+
 	private boolean setupPermissions() {
 		Plugin permissionsPlugin = this.getServer().getPluginManager()
 				.getPlugin("Permissions");
@@ -189,7 +208,7 @@ public class SpoutBackpack extends JavaPlugin {
 			return false;
 		} else {
 			permissionHandler = ((Permissions) permissionsPlugin).getHandler();
-			logger.info(logTag + " Permissions found, will use it.");
+			logger.info(logTag + li.getMessage("permissionsfound"));
 			return true;
 		}
 	}
@@ -200,7 +219,7 @@ public class SpoutBackpack extends JavaPlugin {
 		if (permissionsBukkitPlugin == null) {
 			return false;
 		} else {
-			logger.info(logTag + " PermissionsBukkit found, will use it.");
+			logger.info(logTag + li.getMessage("permissionsbukkitfound"));
 			return true;
 		}
 	}
@@ -208,7 +227,7 @@ public class SpoutBackpack extends JavaPlugin {
 	private boolean setupPermissionsEx() {
 		if (getServer().getPluginManager().isPluginEnabled("PermissionsEx")) {
 			permissionsEx = PermissionsEx.getPermissionManager();
-			logger.info(logTag + " PermissionsEx found, will use it.");
+			logger.info(logTag + li.getMessage("permissionsexfound"));
 			return true;
 		} else {
 			return false;
@@ -222,14 +241,14 @@ public class SpoutBackpack extends JavaPlugin {
 			return false;
 		} else {
 			groupManager = (GroupManager) groupManagerPlugin;
-			logger.info(logTag + " GroupManager found, will use it.");
+			logger.info(logTag + li.getMessage("groupmanagerfound"));
 			return true;
 		}
 	}
 
 	private void setupOPSystem() {
 		if (permissionHandler == null && permissionsBukkitPlugin == null) {
-			logger.info(logTag + " OP system detected, will use it.");
+			logger.info(logTag + li.getMessage("opsystemfound"));
 		}
 	}
 
@@ -251,7 +270,7 @@ public class SpoutBackpack extends JavaPlugin {
 			return;
 		}
 		mobArenaHandler = new MobArenaHandler();
-		logger.info(logTag + " MobArena found, will use it.");
+		logger.info(logTag + li.getMessage("mobarenafound"));
 		return;
 	}
 
@@ -259,7 +278,7 @@ public class SpoutBackpack extends JavaPlugin {
 		Plugin jailPlugin = getServer().getPluginManager().getPlugin("Jail");
 		if (jailPlugin != null) {
 			jail = ((Jail) jailPlugin).API;
-			logger.info(logTag + " Jail found, will use it.");
+			logger.info(logTag + li.getMessage("jailfound"));
 			return;
 		} else {
 			return;
@@ -283,18 +302,11 @@ public class SpoutBackpack extends JavaPlugin {
 		Configuration config = new Configuration(saveFile);
 		config.load();
 		int size = allowedSize(world, player, true);
-		if (size == 0) {
-			size = 9;
-		}
-		if (config.getInt("Size", size) != size) {
-			size = config.getInt("Size", size);
-		}
-		this.inventoriesSize.put(player.getName(), size);
 		CustomInventory inv = new CustomInventory(
-				this.inventoriesSize.get(player.getName()), this.inventoryName);
+				size, this.inventoryName);
 		if (saveFile.exists()) {
 			Integer i = 0;
-			for (i = 0; i < this.inventoriesSize.get(player.getName()); i++) {
+			for (i = 0; i < size; i++) {
 				ItemStack item = new ItemStack(0, 0);
 				item.setAmount(config.getInt(i.toString() + ".amount", 0));
 				item.setTypeId(config.getInt(i.toString() + ".type", 0));
@@ -311,7 +323,8 @@ public class SpoutBackpack extends JavaPlugin {
 		this.inventories.put(player.getName(), is);
 	}
 
-	public int allowedSize(World world, Player player, boolean configurationCheck) {
+	public int allowedSize(World world, Player player,
+			boolean configurationCheck) {
 		int size = 9;
 		if (permissionHandler != null) {
 			if (permissionHandler.has(world.getName(), player.getName(),
@@ -401,7 +414,7 @@ public class SpoutBackpack extends JavaPlugin {
 		}
 		return size;
 	}
-	
+
 	public int allowedSizeInConfig(World world, Player player) {
 		File saveFile;
 		if (config.getBoolean("Backpack." + world.getName()
@@ -531,24 +544,32 @@ public class SpoutBackpack extends JavaPlugin {
 						if (argument.equalsIgnoreCase("reload")) {
 							if (userHasPermission(player, "backpack.reload")) {
 								loadOrReloadConfiguration();
-								player.sendMessage("Configuration reloaded.");
-								player.sendMessage("If you want to reload permissions, etc.");
-								player.sendMessage("please do a global reload (/reload).");
+								player.sendMessage(li
+										.getMessage("configreloaded1"));
+								player.sendMessage(li
+										.getMessage("configreloaded2"));
+								player.sendMessage(li
+										.getMessage("configreloaded3"));
 							}
 						} else if (argument.equalsIgnoreCase("help")
 								|| argument.equalsIgnoreCase("?")) {
 							showHelp(player);
 						} else if (argument.equalsIgnoreCase("info")) {
-							int size = allowedSize(player.getWorld(), player, true);
+							int size = allowedSize(player.getWorld(), player,
+									true);
 							if (size == 54) {
-								player.sendMessage("You've got the biggest "
-										+ ChatColor.RED + inventoryName
-										+ ChatColor.WHITE + "!");
+								player.sendMessage(li
+										.getMessage("youvegotthebiggest")
+										+ ChatColor.RED
+										+ inventoryName
+										+ ChatColor.WHITE + li.getMessage("!"));
 							} else {
-								player.sendMessage("Your " + ChatColor.RED
-										+ inventoryName + ChatColor.WHITE
-										+ " has " + ChatColor.RED + size
-										+ ChatColor.WHITE + " slots.");
+								player.sendMessage(li.getMessage("your")
+										+ ChatColor.RED + inventoryName
+										+ ChatColor.WHITE
+										+ li.getMessage("has") + ChatColor.RED
+										+ size + ChatColor.WHITE
+										+ li.getMessage("slots"));
 								if (size < upgradeAllowedSize(
 										player.getWorld(), player)
 										&& Method != null
@@ -556,7 +577,8 @@ public class SpoutBackpack extends JavaPlugin {
 										|| permissionsEx != null
 										|| groupManager != null) {
 									double cost = calculateCost(size);
-									player.sendMessage("Next upgrade cost "
+									player.sendMessage(li
+											.getMessage("nextupgradecost")
 											+ ChatColor.RED
 											+ Method.format(cost)
 											+ ChatColor.WHITE + ".");
@@ -571,41 +593,73 @@ public class SpoutBackpack extends JavaPlugin {
 										|| groupManager != null) {
 									startUpgradeProcedure(
 											allowedSize(player.getWorld(),
-													player, true), player, player);
+													player, true), player,
+											player);
 								}
-							} else if (allowedSize(player.getWorld(), player, true) == 54) {
-								player.sendMessage("You've got the biggest "
-										+ ChatColor.RED + inventoryName
-										+ ChatColor.WHITE + "!");
+							} else if (allowedSize(player.getWorld(), player,
+									true) == 54) {
+								player.sendMessage(li
+										.getMessage("youvegotthebiggest")
+										+ ChatColor.RED
+										+ inventoryName
+										+ ChatColor.WHITE + li.getMessage("!"));
 							} else {
-								player.sendMessage("You've got the biggest "
-										+ ChatColor.RED + inventoryName
+								player.sendMessage(li
+										.getMessage("youvegotthebiggest")
+										+ ChatColor.RED
+										+ inventoryName
 										+ ChatColor.WHITE
-										+ " for your permissions!");
+										+ li.getMessage("foryourpermissions"));
 							}
 						} else if (argument.equalsIgnoreCase("clear")) {
 							if (userHasPermission(player, "backpack.clear")) {
 								if (inventories.containsKey(player.getName())) {
 									inventories.remove(player.getName());
-									player.sendMessage("You " + ChatColor.RED
-											+ inventoryName + ChatColor.WHITE
-											+ " has been cleared!");
+									player.sendMessage(li.getMessage("your")
+											+ ChatColor.RED + inventoryName
+											+ ChatColor.WHITE
+											+ li.getMessage("hasbeencleared"));
 								} else {
-									player.sendMessage("You don't have a registred "
+									player.sendMessage(li
+											.getMessage("youdonthavearegistred")
 											+ ChatColor.RED
 											+ inventoryName
-											+ ChatColor.WHITE + "!");
+											+ ChatColor.WHITE
+											+ li.getMessage("!"));
 								}
 							}
 						} else if (argument.equalsIgnoreCase("debug")) {
-							if (permissionHandler != null) { logger.info("You're are using Permissions."); }
-							else if (permissionsBukkitPlugin != null) { logger.info("You're are using PermissionsBukkit."); }
-							else if (permissionsEx != null) { logger.info("You're are using PermissionsEx."); }
-							else if (groupManager != null) { logger.info("You're are using GroupManager."); }
-							if (Method != null) { logger.info("Economy system detected."); }
-							logger.info("Your permissions give you a " + allowedSize(player.getWorld(), player, false) + " slots Backpack.");
-							logger.info("Your personal file gives you a " + allowedSizeInConfig(player.getWorld(), player) + " slots Backpack.");
-							logger.info("Your permissions allow you to upgrade to a " + upgradeAllowedSize(player.getWorld(), player) + " slots Backpack.");
+							if (permissionHandler != null) {
+								logger.info(li.getMessage("usingpermissions"));
+							} else if (permissionsBukkitPlugin != null) {
+								logger.info(li
+										.getMessage("usingpermissionsbukkit"));
+							} else if (permissionsEx != null) {
+								logger.info(li.getMessage("usingpermissionsex"));
+							} else if (groupManager != null) {
+								logger.info(li.getMessage("usinggroupmanager"));
+							}
+							if (Method != null) {
+								logger.info(li.getMessage("usingeconomy"));
+							}
+							logger.info(li
+									.getMessage("yourpermissionsgiveyoua")
+									+ allowedSize(player.getWorld(), player,
+											false)
+									+ li.getMessage("slotsbis")
+									+ inventoryName + ".");
+							logger.info(li
+									.getMessage("yourpersonalfilegivesyoua")
+									+ allowedSizeInConfig(player.getWorld(),
+											player)
+									+ li.getMessage("slotsbis")
+									+ inventoryName + ".");
+							logger.info(li
+									.getMessage("yourpermissionsallowyoutoupgradetoa")
+									+ upgradeAllowedSize(player.getWorld(),
+											player)
+									+ li.getMessage("slotsbis")
+									+ inventoryName + ".");
 						} else {
 							showHelp(player);
 						}
@@ -618,17 +672,24 @@ public class SpoutBackpack extends JavaPlugin {
 									Player playerCmd = getServer().getPlayer(
 											playerName);
 									int size = allowedSize(
-											playerCmd.getWorld(), playerCmd, true);
+											playerCmd.getWorld(), playerCmd,
+											true);
 									if (size == 54) {
-										player.sendMessage("Player has got the biggest "
+										player.sendMessage(li
+												.getMessage("playerhasgotthebiggest")
 												+ ChatColor.RED
 												+ inventoryName
-												+ ChatColor.WHITE + "!");
+												+ ChatColor.WHITE
+												+ li.getMessage("!"));
 									} else {
-										player.sendMessage("Player's "
-												+ ChatColor.RED + inventoryName
-												+ ChatColor.WHITE + " has "
-												+ size + " slots.");
+										player.sendMessage(li
+												.getMessage("players")
+												+ ChatColor.RED
+												+ inventoryName
+												+ ChatColor.WHITE
+												+ li.getMessage("hasbis")
+												+ size
+												+ li.getMessage("slots"));
 										if (size < upgradeAllowedSize(
 												player.getWorld(), player)
 												&& Method != null
@@ -636,7 +697,8 @@ public class SpoutBackpack extends JavaPlugin {
 												|| permissionsEx != null
 												|| groupManager != null) {
 											double cost = calculateCost(size);
-											player.sendMessage("Next upgrade cost "
+											player.sendMessage(li
+													.getMessage("nextupgradecost")
 													+ ChatColor.RED
 													+ Method.format(cost)
 													+ ChatColor.WHITE + ".");
@@ -644,7 +706,7 @@ public class SpoutBackpack extends JavaPlugin {
 									}
 								} else {
 									player.sendMessage(ChatColor.RED
-											+ "Player not found!");
+											+ li.getMessage("playernotfound"));
 								}
 							}
 						} else if (firstArgument.equalsIgnoreCase("upgrade")) {
@@ -668,21 +730,25 @@ public class SpoutBackpack extends JavaPlugin {
 													playerCmd, player);
 										}
 									} else if (allowedSize(
-											playerCmd.getWorld(), playerCmd, true) == 54) {
-										player.sendMessage("Player has got the biggest "
-												+ ChatColor.RED
-												+ inventoryName
-												+ ChatColor.WHITE + "!");
-									} else {
-										player.sendMessage("Player has got the biggest "
+											playerCmd.getWorld(), playerCmd,
+											true) == 54) {
+										player.sendMessage(li
+												.getMessage("playerhasgotthebiggest")
 												+ ChatColor.RED
 												+ inventoryName
 												+ ChatColor.WHITE
-												+ " for his permissions!");
+												+ li.getMessage("!"));
+									} else {
+										player.sendMessage(li
+												.getMessage("playerhasgotthebiggest")
+												+ ChatColor.RED
+												+ inventoryName
+												+ ChatColor.WHITE
+												+ li.getMessage("forhispermissions"));
 									}
 								} else {
 									player.sendMessage(ChatColor.RED
-											+ "Player not found!");
+											+ li.getMessage("playernotfound"));
 								}
 							}
 						} else if (firstArgument.equalsIgnoreCase("clear")) {
@@ -690,13 +756,15 @@ public class SpoutBackpack extends JavaPlugin {
 									"backpack.clear.other")) {
 								if (inventories.containsKey(playerName)) {
 									inventories.remove(playerName);
-									player.sendMessage(playerName + "'s "
+									player.sendMessage(li.getMessage("frenchonly")
+											+ playerName
+											+ li.getMessage("'s")
 											+ ChatColor.RED + inventoryName
 											+ ChatColor.WHITE
-											+ " has been cleared!");
+											+ li.getMessage("hasbeencleared"));
 								} else {
 									player.sendMessage(ChatColor.RED
-											+ "Player not found!");
+											+ li.getMessage("playernotfound"));
 								}
 							}
 						} else if (firstArgument.equalsIgnoreCase("open")) {
@@ -705,7 +773,7 @@ public class SpoutBackpack extends JavaPlugin {
 									if (!openedInventories
 											.containsKey(playerName)) {
 										CustomInventory inv = new CustomInventory(
-												inventoriesSize.get(playerName),
+												allowedSize(player.getWorld(), player, true),
 												inventoryName);
 										openedInventories.put(playerName, inv);
 										openedInventoriesOthers.put(
@@ -715,14 +783,16 @@ public class SpoutBackpack extends JavaPlugin {
 										((org.getspout.spoutapi.player.SpoutPlayer) player)
 												.openInventoryWindow((Inventory) inv);
 									} else {
-										player.sendMessage("Player has already his "
+										player.sendMessage(li
+												.getMessage("playerhasalreadyhis")
 												+ ChatColor.RED
 												+ inventoryName
-												+ ChatColor.WHITE + " open!");
+												+ ChatColor.WHITE
+												+ li.getMessage("opened"));
 									}
 								} else {
 									player.sendMessage(ChatColor.RED
-											+ "Player not found!");
+											+ li.getMessage("playernotfound"));
 								}
 							}
 						}
@@ -747,30 +817,28 @@ public class SpoutBackpack extends JavaPlugin {
 					account.subtract(cost);
 				} else {
 					if (player.equals(notificationsAndMoneyPlayer)) {
-						notificationsAndMoneyPlayer
-								.sendMessage("You don't have enough money to upgrade your "
-										+ ChatColor.RED
-										+ inventoryName
-										+ ChatColor.WHITE + ".");
+						notificationsAndMoneyPlayer.sendMessage(li
+								.getMessage("notenoughmoneyyour")
+								+ ChatColor.RED
+								+ inventoryName
+								+ ChatColor.WHITE + ".");
 					} else {
-						notificationsAndMoneyPlayer
-								.sendMessage("You don't have enough money to upgrade player's "
-										+ ChatColor.RED
-										+ inventoryName
-										+ ChatColor.WHITE + ".");
+						notificationsAndMoneyPlayer.sendMessage(li
+								.getMessage("notenoughmoneyplayer")
+								+ ChatColor.RED
+								+ inventoryName
+								+ ChatColor.WHITE + ".");
 					}
 					return;
 				}
 			} else {
 				notificationsAndMoneyPlayer.sendMessage(ChatColor.RED
-						+ "Error, you don't have any account!");
+						+ li.getMessage("noaccount"));
 				return;
 			}
 		}
 		SBInventorySaveTask.saveInventory(player, player.getWorld());
 		inventories.remove(player.getName());
-		inventoriesSize.remove(player.getName());
-		inventoriesSize.put(player.getName(), sizeAfter);
 		File saveFile;
 		if (config.getBoolean("Backpack." + player.getWorld().getName()
 				+ ".InventoriesShare?", true)) {
@@ -786,10 +854,12 @@ public class SpoutBackpack extends JavaPlugin {
 		config.setProperty("Size", sizeAfter);
 		config.save();
 		loadInventory(player, player.getWorld());
-		notificationsAndMoneyPlayer.sendMessage("Your " + ChatColor.RED
-				+ inventoryName + ChatColor.WHITE + " has been upgraded.");
-		notificationsAndMoneyPlayer.sendMessage("It has now " + ChatColor.RED
-				+ sizeAfter + ChatColor.WHITE + " slots.");
+		notificationsAndMoneyPlayer.sendMessage(li.getMessage("your")
+				+ ChatColor.RED + inventoryName + ChatColor.WHITE
+				+ li.getMessage("hasbeenupgraded"));
+		notificationsAndMoneyPlayer.sendMessage(li.getMessage("ithasnow")
+				+ ChatColor.RED + sizeAfter + ChatColor.WHITE
+				+ li.getMessage("slots"));
 	}
 
 	public boolean userHasPermission(Player player, String permission) {
@@ -810,17 +880,17 @@ public class SpoutBackpack extends JavaPlugin {
 
 	public void showHelp(Player player) {
 		if (userHasPermission(player, "backpack.reload")) {
-			player.sendMessage("/backpack reload : Reload the configuration.");
+			player.sendMessage(li.getMessage("reloadcommand"));
 		}
-		player.sendMessage("/backpack info : Show info about your "
-				+ ChatColor.RED + inventoryName + ChatColor.WHITE + ".");
+		player.sendMessage(li.getMessage("infocommand") + ChatColor.RED
+				+ inventoryName + ChatColor.WHITE + ".");
 		if (allowedSize(player.getWorld(), player, true) < upgradeAllowedSize(
 				player.getWorld(), player)
 				&& Method != null
 				&& (permissionHandler != null || permissionsBukkitPlugin != null)
 				|| permissionsEx != null || groupManager != null) {
-			player.sendMessage("/backpack upgrade : Upgrade your "
-					+ ChatColor.RED + inventoryName + ChatColor.WHITE + ".");
+			player.sendMessage(li.getMessage("upgradecommand") + ChatColor.RED
+					+ inventoryName + ChatColor.WHITE + ".");
 		}
 	}
 
@@ -862,7 +932,7 @@ public class SpoutBackpack extends JavaPlugin {
 
 	public Inventory getClosedBackpack(Player player) {
 		CustomInventory inventory = new CustomInventory(
-				inventoriesSize.get(player.getName()), inventoryName);
+				allowedSize(player.getWorld(), player, true), inventoryName);
 		if (inventories.containsKey(player.getName())) {
 			inventory.setContents(inventories.get(player.getName()));
 		}
@@ -877,8 +947,8 @@ public class SpoutBackpack extends JavaPlugin {
 	@Override
 	public void onDisable() {
 		this.getServer().getScheduler().cancelTask(saveTaskId);
-		logger.info(logTag + " Saving all inventories.");
+		logger.info(logTag + li.getMessage("savingallinventories"));
 		SBInventorySaveTask.saveAll();
-		logger.info(logTag + " Is now disabled.");
+		logger.info(logTag + li.getMessage("isnowdisabled"));
 	}
 }

@@ -30,8 +30,8 @@ public class SBInventoryListener extends InventoryListener {
 			}
 			Inventory inv = event.getInventory();
 			if (inv.getName().equals(plugin.inventoryName)
-					&& inv.getSize() == plugin.inventoriesSize.get(player
-							.getName())) {
+					&& inv.getSize() == plugin.allowedSize(player.getWorld(),
+							player, true)) {
 				plugin.inventories.put(player.getName(), inv.getContents());
 			}
 		} else {
@@ -43,9 +43,15 @@ public class SBInventoryListener extends InventoryListener {
 			}
 			Inventory inv = event.getInventory();
 			if (inv.getName().equals(plugin.inventoryName)
-					&& inv.getSize() == plugin.inventoriesSize
-							.get(plugin.openedInventoriesOthers.get(player
-									.getName()))) {
+					&& inv.getSize() == plugin.allowedSize(
+							plugin.getServer()
+									.getPlayer(
+											plugin.openedInventoriesOthers
+													.get(player.getName()))
+									.getWorld(),
+							plugin.getServer().getPlayer(
+									plugin.openedInventoriesOthers.get(player
+											.getName())), true)) {
 				plugin.inventories.put(
 						plugin.openedInventoriesOthers.get(player.getName()),
 						inv.getContents());
@@ -73,21 +79,24 @@ public class SBInventoryListener extends InventoryListener {
 					&& clickedSlotType != InventorySlotType.CONTAINER
 					&& invName.equals("Inventory")
 					&& (plugin.blackOrWhiteList == 1
-							&& plugin.blacklist.contains(clickedItem.getTypeId()) || plugin.blackOrWhiteList == 2
-							&& !plugin.whitelist.contains(clickedItem.getTypeId()))) {
+							&& plugin.blacklist.contains(clickedItem
+									.getTypeId()) || plugin.blackOrWhiteList == 2
+							&& !plugin.whitelist.contains(clickedItem
+									.getTypeId()))) {
 				event.setCancelled(true);
 				player.sendMessage(ChatColor.RED
-						+ "You aren't allowed to move this into your "
+						+ plugin.li.getMessage("yourenotallowedtomovethis")
 						+ plugin.inventoryName + "!");
 				return;
 			}
 			if (clickedSlotType == InventorySlotType.CONTAINER
-					&& invName.equals(plugin.inventoryName) && clickedItem != null) {
+					&& invName.equals(plugin.inventoryName)
+					&& clickedItem != null) {
 				ItemStack is = inv.getItem(slot);
 				is.setAmount(is.getAmount() - clickedItem.getAmount());
 				plugin.updateInventory(player, inv.getContents());
 			}
-		} catch (NullPointerException e) {	
+		} catch (NullPointerException e) {
 		}
 	}
 }

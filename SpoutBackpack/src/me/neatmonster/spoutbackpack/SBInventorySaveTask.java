@@ -19,7 +19,7 @@ public class SBInventorySaveTask implements Runnable {
 
 	public static void saveAll() {
 		if (plugin.logSaves) {
-			logger.info(logTag + " Saving inventories!");
+			logger.info(logTag + plugin.li.getMessage("savinginventories"));
 		}
 		Player[] players = plugin.getServer().getOnlinePlayers();
 		HashMap<String, ItemStack[]> invs = new HashMap<String, ItemStack[]>(
@@ -45,19 +45,18 @@ public class SBInventorySaveTask implements Runnable {
 		}
 		Configuration config = new Configuration(saveFile);
 		if (plugin.inventories.containsKey(player.getName())) {
-			CustomInventory inv = new CustomInventory(
-					plugin.inventoriesSize.get(player.getName()),
-					plugin.inventoryName);
+			CustomInventory inv = new CustomInventory(plugin.allowedSize(world,
+					player, true), plugin.inventoryName);
 			inv.setContents(plugin.inventories.get(player.getName()));
 			Integer i = 0;
-			for (i = 0; i < plugin.inventoriesSize.get(player.getName()); i++) {
+			for (i = 0; i < plugin.allowedSize(world, player, true); i++) {
 				ItemStack item = inv.getItem(i);
 				config.getInt(i.toString() + ".amount", item.getAmount());
 				Short durab = item.getDurability();
 				config.getInt(i.toString() + ".durability", durab.intValue());
 				config.getInt(i.toString() + ".type", item.getTypeId());
 				config.setProperty("Size",
-						plugin.inventoriesSize.get(player.getName()));
+						plugin.allowedSize(world, player, true));
 				config.save();
 			}
 		}
