@@ -22,6 +22,17 @@ public class SBHandler {
 		spoutBackpackEnabled = true;
 		plugin = (SpoutBackpack) SpoutBackpackPlugin;
 	}
+	
+	/**
+	 * Return if or not the player's Backpack is open.
+	 * 
+	 * @param player
+	 *            The player you want to get the inventory.
+	 * @return open Player's Backpack opened or not.
+	 */
+	public boolean isOpenSpoutBackpack(Player player) {
+		return plugin.isOpenBackpack(player);
+	}
 
 	/**
 	 * Get the opened SpoutBackpack inventory of a player.

@@ -925,6 +925,10 @@ public class SpoutBackpack extends JavaPlugin {
 		}
 		return size;
 	}
+	
+	public boolean isOpenBackpack(Player player) {
+		return openedInventories.containsKey(player);
+	}
 
 	public Inventory getOpenedBackpack(Player player) {
 		return openedInventories.get(player.getName());
