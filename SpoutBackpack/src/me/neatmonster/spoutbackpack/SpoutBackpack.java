@@ -517,11 +517,13 @@ public class SpoutBackpack extends JavaPlugin {
 					canOpenBackpack = false;
 				}
 			}
-		} else if (mobArenaHandler != null) {
+		}
+		if (mobArenaHandler != null) {
 			if (mobArenaHandler.inRegion(player.getLocation())) {
 				canOpenBackpack = false;
 			}
-		} else if (jail != null) {
+		}
+		if (jail != null) {
 			if (jail.isPlayerJailed(player.getName()) == true) {
 				canOpenBackpack = false;
 			}
