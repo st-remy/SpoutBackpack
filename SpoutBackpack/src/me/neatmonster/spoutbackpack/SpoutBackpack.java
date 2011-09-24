@@ -37,6 +37,7 @@ import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
 import com.nijikokun.register.payment.Method;
 import com.nijikokun.register.payment.Method.MethodAccount;
+import com.nijikokun.register.payment.Methods;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
@@ -101,6 +102,7 @@ public class SpoutBackpack extends JavaPlugin {
 		}
 		setupMobArena();
 		setupJail();
+		setupRegister();
 		PluginManager pm = this.getServer().getPluginManager();
 		pm.registerEvent(Type.CUSTOM_EVENT, new SBInputListener(this),
 				Priority.Normal, this);
@@ -118,10 +120,6 @@ public class SpoutBackpack extends JavaPlugin {
 				Priority.Normal, this);
 		pm.registerEvent(Type.ENTITY_DEATH, new SBEntityListener(this),
 				Priority.Normal, this);
-		pm.registerEvent(Type.PLUGIN_ENABLE, new SBRegister(this),
-				Priority.Monitor, this);
-		pm.registerEvent(Type.PLUGIN_DISABLE, new SBRegister(this),
-				Priority.Monitor, this);
 		long delay = 20L * 60 * saveTime;
 		saveTaskId = this
 				.getServer()
@@ -283,6 +281,16 @@ public class SpoutBackpack extends JavaPlugin {
 		} else {
 			return;
 		}
+	}
+	
+	private void setupRegister() {
+		Methods.setMethod(getServer().getPluginManager());
+		Method = Methods.getMethod();
+		if (Method != null)
+			logger.info(logTag + li.getMessage("paymentmethodfound")
+					+ Method.getName() + " v" + Method.getVersion() + ").");
+		else
+			logger.info(logTag + li.getMessage("paymentmethodwasdisabled"));
 	}
 
 	public void loadInventory(Player player, World world) {
